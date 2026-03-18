@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FastAPI WebSocket Tester</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #messages { border: 1px solid #ddd; height: 300px; overflow-y: scroll; padding: 10px; background: #f9f9f9; }
+        .server { color: blue; }
+        .client { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h2>WebSocket Tester</h2>
+    
+    <div>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+    <br>
+    <div>
+        <input type="text" id="msgInput" placeholder="Type a message..." value="Hello FastAPI">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <h3>Logs:</h3>
+    <div id="messages"></div>
+
+    <script>
+        let ws = null;
+
+        function connect() {
+            // Note: Use 'ws://' instead of 'http://'
+            // Port 8000 is your FastAPI default
+            ws = new WebSocket("ws://localhost:8000/api/ws/test-connection");
+
+            ws.onopen = function() {
+                log("Connection established!", "server");
+            };
+
+            ws.onmessage = function(event) {
+                log("Server says: " + event.data, "server");
+            };
+
+            ws.onclose = function(event) {
+                log("Connection closed.", "error");
+                ws = null;
+            };
+
+            ws.onerror = function(error) {
+                log("WebSocket Error: " + error, "error");
+            };
+        }
+
+        function sendMessage() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const input = document.getElementById("msgInput");
+                ws.send(input.value);
+                log("You sent: " + input.value, "client");
+            } else {
+                alert("Connect first!");
+            }
+        }
+
+        function disconnect() {
+            if (ws) ws.close();
+        }
+
+        function log(msg, type) {
+            const div = document.getElementById("messages");
+            div.innerHTML += `<div class="${type}">${msg}</div>`;
+            div.scrollTop = div.scrollHeight; // Auto-scroll to bottom
+        }
+    </script>
+</body>
+</html>
